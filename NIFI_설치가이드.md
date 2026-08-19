@@ -243,4 +243,4 @@ java.arg.3=-Xmx2g
 ```
 
 > [!Note]
-> 즉시 사용 가능하도록 NIFI > Controller Services > DBConnectionPool 등록 되어 있습니다. (/opt/nifi/lib > Mysql, Postgresql Driver 설치 완료)
+> 해당 문서는 dfodev.iptime.org 도메인 명으로 작성된 문서로, 개인 로컬 PC에서 진행할 시 localhost 등으로 적절히 변경하여 사용해야 합니다.
