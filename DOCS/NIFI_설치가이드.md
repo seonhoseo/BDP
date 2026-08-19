@@ -240,4 +240,4 @@ java.arg.3=-Xmx2g
 ```
 
 > [!Note]
-> 해당 문서는 dfodev.iptime.org 도메인 명으로 작성된 문서로, 개인 로컬 PC에서 진행할 시 localhost 등으로 적절히 변경하여 사용해야 합니다.
+> 해당 문서는 dfodev.iptime.org 도메인 기준입니다. 개인 로컬 PC에서 진행할 시 localhost 등으로 적절히 변경하여 사용해야 합니다.
