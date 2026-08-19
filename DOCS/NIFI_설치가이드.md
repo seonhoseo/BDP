@@ -33,9 +33,6 @@ export PATH=$JAVA_HOME/bin:$PATH
 source /etc/profile
 echo $JAVA_HOME
 ```
-<p align="center">
-<img width="700" height="450" alt="image" src="https://github.com/user-attachments/assets/2321da63-455a-437f-a14b-1b9dc4e7fa16" />
-</p>
 
 # 2. NIFI 설치
 ##### 2-1. NIFI 파일 다운로드
