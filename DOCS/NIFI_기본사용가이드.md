@@ -264,3 +264,42 @@ Update, Insert, Upsert 등 다양한 동작을 제공한다.
 </details>
 
 <img width="441" height="1065" alt="image" src="https://github.com/user-attachments/assets/5d0e70dd-a4f6-4d15-b782-cf9c93715314" />
+
+# 3. NiFi 정적 변수 설정
+### 3-1. Nifi 변수 사용에 대한 이해
+* Nifi에서는 동적 변수를 전역으로 선언할 수 없다. 날짜 변수처럼 동적으로 사용해야 하는 경우 적용되어야 할 프로세스 그룹 내에서 Script 형식으로 선언해야 하며, 정적변수만 Nifi에서 제공하는 Parameter Contexts 기능을 사용하여 선언할 수 있다.
+
+### 3-2. Parameter Contexts
+* 정적 변수로 가장 사용하기 쉬운 예시는 파일 경로 지정이다.
+  * 프로세스 그룹 가장 상위 경로로 이동
+  * 가장 우측 햄버거(3단 선) 클릭
+  * Parameter Conetexts 클릭
+  * 우측 '+' 클릭
+    <details>
+    <summary><strong>Parameter Context 생성 화면</strong></summary>
+    
+    팝업창 `Settings`에서 이름을 지정하고, `Parameters`에서 아래 스크린샷과 같이 설정한다.
+    
+    <img width="1537" height="1001" alt="image" src="https://github.com/user-attachments/assets/728b59f1-e02b-4911-a4b4-673c3e54c139" />
+    
+    </details>
+
+### 3-3. Parameter Contexts 사용
+* Parameter Contexts에서 선언한 변수는 프로세스 그룹을 생성할 때 팝업창에서 설정할 수 있다. (프로세스 그룹 생성 버튼 드래그 후 나오는 팝업창)
+  <details>
+  <summary><strong>프로세스 그룹 생성 시 Parameter Context 설정</strong></summary>
+  
+  <img width="706" height="443" alt="image" src="https://github.com/user-attachments/assets/3be92c95-582b-47a4-912a-3caa395076af" />
+  
+  </details>
+
+* 생성한 전역 변수는 아래와 같이 File to DB 실습을 진행할 때, 아래와 파일 경로로 사용한다.
+  <details>
+  <summary><strong>Parameter 사용 예시</strong></summary>
+  
+  <img width="1534" height="456" alt="image" src="https://github.com/user-attachments/assets/e405511b-1eaa-486b-aa33-a5bc9e07f621" />
+  
+  </details>
+
+> [!TIP]
+> 해당 문서는 Nifi에서 가장 기본적으로 사용되는 기능과 프로세스를 설명하고 있습니다. 보다 자세한 주석이나 상세기능 설정 참고를 위해서는 로컬 PC에 Nifi를 설치하여 제공된 Json파일을 업로딩 하시기 바랍니다.
