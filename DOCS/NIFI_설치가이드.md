@@ -143,9 +143,6 @@ nifi.security.truststorePasswd=BDPadminPW!!
 nifi.sensitive.props.key=NiFiStudy2026!
 nifi.web.proxy.host=dfodev.iptime.org:8443
 ```
-<p align="center">
-<img width="700" height="700" alt="image" src="https://github.com/user-attachments/assets/8078a027-5e53-4713-aa3b-8771c8160773" />
-</p>
 
 ##### 3-3. users 생성
 ```bash
@@ -167,13 +164,10 @@ cd /opt/nifi/bin
 ##### 4-2. NIFI 웹 접속
 + https://dfodev.iptime.org:8443/nifi 로 접속
   + bdpadmin / BDPadminPW!!
-<p align="center">
-<img width="350" height="350" alt="image" src="https://github.com/user-attachments/assets/6ed8e212-ab67-4a4f-b441-6a3b7a68d0d2" />
-</p>
 
 ##### 4-3. NIFI 서비스 등록
 ```bash
-* 개발환경이므로 실제 등록 X, 참고용으로 작성됨 *
+* 개발환경이므로 실제 등록 X, 참고용으로 AI 내용 기반으로 작성됨. 실제 적용 시에는 추가 검증이 필요함 *
 sudo su
 nano /etc/systemd/system/nifi.service
 
@@ -240,4 +234,4 @@ java.arg.3=-Xmx2g
 ```
 
 > [!Note]
-> 해당 문서는 dfodev.iptime.org 도메인 기준입니다. 개인 로컬 PC에서 진행할 시 localhost 등으로 적절히 변경하여 사용해야 합니다.
+> 해당 문서는 dfodev.iptime.org 도메인 기준입니다. 개인 로컬 PC에서 진행할 시 localhost 등으로 적절히 변경하여 사용해야 하며, Keystore, Truststore 등 인증서 과정은 Skip 하시기 바랍니다.
