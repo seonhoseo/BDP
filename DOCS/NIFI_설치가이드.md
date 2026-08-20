@@ -235,3 +235,5 @@ java.arg.3=-Xmx2g
 
 > [!Note]
 > 해당 문서는 dfodev.iptime.org 도메인 기준입니다. 개인 로컬 PC에서 진행할 시 localhost 등으로 적절히 변경하여 사용해야 하며, Keystore, Truststore 등 인증서 과정은 Skip 하시기 바랍니다.
+> 
+> 3절 NIFI 설정 부분에서 https 부분은 Default 값으로 두고 nifi.web.http.host=0.0.0.0, nifi.web.http.port=8080 부분만 수정하면 개인 로컬PC 환경 세팅이 됩니다.
