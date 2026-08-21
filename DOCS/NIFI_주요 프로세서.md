@@ -201,9 +201,9 @@
   <details>
   <summary><strong>QueryDatabaseTableRecord</strong> - DB 테이블의 데이터를 Record 형태로 조회</summary>
   
-  QueryDatabaseTableRecord는 지정된 DB 테이블을 조회하여 Record 형식의 FlowFile로 생성하는 프로세서이다.
+    QueryDatabaseTableRecord는 지정된 DB 테이블을 조회하여 Record 형식의 FlowFile로 생성하는 프로세서이다.
   
-  `AvroReader`, `JsonTreeReader` 등의 Record 기반 Controller Service와 연계하여 조회 결과를 Record 데이터로 처리할 수 있으며, 증분 조회를 위한 Maximum-value Columns를 설정하여 이전 실행 이후 변경된 데이터만 가져오는 방식으로도 사용할 수 있다.
+    `AvroReader`, `JsonTreeReader` 등의 Record 기반 Controller Service와 연계하여 조회 결과를 Record 데이터로 처리할 수 있으며, 증분 조회를 위한 Maximum-value Columns를 설정하여 이전 실행 이후 변경된 데이터만 가져오는 방식으로도 사용할 수 있다.
   
   ### 주요 Properties
   
@@ -223,6 +223,43 @@
   | **Default Decimal Format** | Decimal 타입 데이터를 처리할 때 사용할 기본 형식을 지정한다. |
   | **Use Avro Logical Types** | 날짜, 시간 등의 데이터를 Avro Logical Type으로 처리할지 여부를 지정한다. |
   
+  </details>
+ 
+  ---
+
+# 6. ListFile
+  <details>
+  <summary><strong>ListFile</strong> - 디렉터리의 파일 목록을 조회하여 FlowFile 생성</summary>
+  
+    ListFile은 지정된 디렉터리를 주기적으로 스캔하여 조건에 맞는 파일을 찾아 파일 목록 정보를 FlowFile의 Attribute로 생성하는 프로세서이다.
+  
+    실제 파일의 데이터를 읽어오는 프로세서는 아니며, 파일의 위치와 이름, 크기, 수정 시간 등의 정보를 확인한 후 `FetchFile` 등의 프로세서와 연계하여 파일을 가져오는 용도로 사용한다.
+  
+  ### 주요 Properties
+  
+  | Property | 설명 |
+  |---|---|
+  | **Input Directory** | 조회할 파일이 존재하는 디렉터리 경로를 지정한다. |
+  | **File Filter** | 조회할 파일의 이름을 정규식으로 필터링한다. |
+  | **Path Filter** | 조회할 하위 디렉터리 경로를 정규식으로 필터링한다. |
+  | **Recurse Subdirectories** | 지정한 디렉터리의 하위 디렉터리까지 탐색할지 여부를 지정한다. |
+  | **Minimum File Age** | 파일의 생성 또는 수정 후 일정 시간이 지난 파일만 조회하도록 설정한다. |
+  | **Maximum File Age** | 지정된 시간보다 오래된 파일을 조회 대상에서 제외한다. |
+  | **Minimum File Size** | 지정된 크기보다 작은 파일을 조회 대상에서 제외한다. |
+  | **Maximum File Size** | 지정된 크기보다 큰 파일을 조회 대상에서 제외한다. |
+  | **Polling Interval** | 디렉터리를 다시 스캔하는 주기를 지정한다. |
+  | **Target System Timestamp Precision** | 파일의 수정 시간 등을 비교할 때 사용할 Timestamp 정밀도를 지정한다. |
+  | **Entity Tracking State Cache** | 이미 처리한 파일을 추적하여 동일한 파일을 반복적으로 조회하지 않도록 관리한다. |
+  
+  ### Input Directory
+  
+  파일을 조회할 디렉터리의 절대 경로를 지정한다.
+  
+  예:
+  
+  ```text
+  /opt/nifi/input
+
   </details>
  
   ---
