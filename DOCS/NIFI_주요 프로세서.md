@@ -196,3 +196,33 @@
   </details>
  
   ---
+
+# 5. QueryDatabaseTableRecord
+  <details>
+  <summary><strong>QueryDatabaseTableRecord</strong> - DB 테이블의 데이터를 Record 형태로 조회</summary>
+  
+  QueryDatabaseTableRecord는 지정된 DB 테이블을 조회하여 Record 형식의 FlowFile로 생성하는 프로세서이다.
+  
+  `AvroReader`, `JsonTreeReader` 등의 Record 기반 Controller Service와 연계하여 조회 결과를 Record 데이터로 처리할 수 있으며, 증분 조회를 위한 Maximum-value Columns를 설정하여 이전 실행 이후 변경된 데이터만 가져오는 방식으로도 사용할 수 있다.
+  
+  ### 주요 Properties
+  
+  | Property | 설명 |
+  |---|---|
+  | **Database Connection Pooling Service** | 데이터를 조회할 Source DB의 Database Connection Pool을 지정한다. |
+  | **Table Name** | 데이터를 조회할 DB 테이블명을 지정한다. |
+  | **Columns to Return** | 조회할 컬럼을 지정한다. 비워두면 테이블의 전체 컬럼을 조회한다. |
+  | **Maximum-value Columns** | 증분 조회 시 기준이 되는 컬럼을 지정한다. 해당 컬럼의 최대값을 저장하여 다음 실행 시 이후 데이터를 조회한다. |
+  | **Maximum Wait Time** | DB Connection을 획득하기 위해 대기하는 최대 시간을 지정한다. |
+  | **Fetch Size** | DB에서 한 번에 가져올 Record의 개수를 지정한다. |
+  | **Record Writer** | 조회한 DB 데이터를 FlowFile의 Record 형식으로 변환하기 위한 Controller Service를 지정한다. |
+  | **Output Batch Size** | 하나의 FlowFile에 포함할 Record의 최대 개수를 지정한다. |
+  | **Initial Load Strategy** | Maximum-value Columns를 사용하는 경우 최초 실행 시 데이터를 어떻게 조회할지 지정한다. |
+  | **Where Clause** | 조회 시 적용할 추가적인 조건절을 지정한다. |
+  | **Normalize Table/Column Names** | 테이블 및 컬럼명을 정규화할지 여부를 지정한다. |
+  | **Default Decimal Format** | Decimal 타입 데이터를 처리할 때 사용할 기본 형식을 지정한다. |
+  | **Use Avro Logical Types** | 날짜, 시간 등의 데이터를 Avro Logical Type으로 처리할지 여부를 지정한다. |
+  
+  </details>
+ 
+  ---
