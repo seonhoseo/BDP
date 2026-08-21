@@ -226,8 +226,42 @@
   </details>
  
   ---
+# 6. UpdateAttribute
+  <details>
+  <summary><strong>UpdateAttribute</strong> - FlowFile Attribute 생성 및 수정</summary>
+  
+    UpdateAttribute는 FlowFile의 Attribute를 추가, 수정, 삭제하는 프로세서이다.
+  
+    NiFi에서 FlowFile의 Attribute는 파일명, 경로, 처리 상태, 날짜, 시스템 변수 등 다양한 메타데이터를 저장하는 데 사용되며, UpdateAttribute를 이용하면 이러한 값을 이후 Processor에서 사용할 수 있도록 동적으로 설정할 수 있다.
+  
+  또한 NiFi Expression Language를 활용하여 기존 Attribute 값이나 날짜, 문자열 등을 조합하여 새로운 값을 생성할 수 있다.
+  
+  ### 주요 Properties
+  
+  | Property | 설명 |
+  |---|---|
+  | **속성(Attribute)** | FlowFile에 추가하거나 수정할 Attribute의 이름과 값을 지정한다. |
+  | **Delete Attributes Expression** | 특정 조건에 따라 기존 Attribute를 삭제할 때 사용한다. |
+  | **Store State** | Processor의 상태(State)를 저장하여 다른 실행에서 활용할지 여부를 지정한다. |
+  | **Stateful Variables Initial Value** | State를 사용하는 경우 초기값을 지정한다. |
+  | **Advanced UI** | 여러 Attribute를 한 번에 관리하거나 동적으로 설정할 때 사용한다. |
+  
+  ### Attribute
+  
+  UpdateAttribute의 가장 핵심적인 설정이다.
+  
+  좌측에는 Attribute 이름을 입력하고 우측에는 해당 Attribute에 저장할 값을 입력한다.
+  
+  예:
+  
+  ```text
+  filename = rental.csv
+  ```
+  </details>
+ 
+  ---
 
-# 6. ListFile
+# 7. ListFile
   <details>
   <summary><strong>ListFile</strong> - 디렉터리의 파일 목록을 조회하여 FlowFile 생성</summary>
   
@@ -259,6 +293,7 @@
   
   ```text
   /opt/nifi/input
+  ```
 
   </details>
  
