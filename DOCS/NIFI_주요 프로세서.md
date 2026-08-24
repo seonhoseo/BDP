@@ -226,7 +226,51 @@
   </details>
  
   ---
-# 6. UpdateAttribute
+
+# 6. PutSQL
+<details>
+<summary><strong>PutSQL</strong> - FlowFile의 SQL 문을 데이터베이스에서 실행</summary>
+
+    FlowFile Content에 포함된 SQL 문을 데이터베이스에서 실행하는 프로세서이다.
+
+    `INSERT`, `UPDATE`, `DELETE`, `CREATE TABLE`, `TRUNCATE` 등의 SQL을 직접 실행할 때 사용할 수 있다.
+
+  `PutDatabaseRecord`가 Record 데이터를 기반으로 INSERT / UPDATE / UPSERT를 처리하는 프로세서라면, `PutSQL`은 FlowFile에 들어 있는 SQL 문 자체를 데이터베이스에서 실행한다.
+
+  ### 주요 Properties
+
+  | Property | 설명 |
+  |---|---|
+  | **JDBC Connection Pool** | SQL을 실행할 데이터베이스의 Connection Pool을 지정한다. |
+  | **Support Fragmented Transactions** | Fragment된 FlowFile에 대한 트랜잭션 처리를 지원할지 설정한다. |
+  | **Batch Size** | 여러 SQL 문을 하나의 Batch로 처리할 개수를 지정한다. |
+  | **Obtain Generated Keys** | INSERT 등의 SQL 실행 후 데이터베이스에서 생성된 Key를 가져올지 설정한다. |
+  | **Rollback On Failure** | SQL 실행에 실패했을 때 트랜잭션을 Rollback할지 설정한다. |
+
+  ### JDBC Connection Pool
+
+  SQL을 실행할 데이터베이스 연결 정보를 가진 Controller Service를 지정한다.
+
+  일반적으로 `DBCPConnectionPool`을 사용한다.
+
+  예를 들어 PostgreSQL 데이터베이스에 SQL을 실행하려면 PostgreSQL용 JDBC Connection Pool을 지정한다.
+
+  ```text
+  JDBC Connection Pool
+  → DBCPConnectionPool
+  → PostgreSQL
+  ```
+  </details>
+  
+ > [!TIP]
+ > ExecuteSQL : SELECT 등의 SQL을 실행하고 조회 결과를 FlowFile로 생성
+ > 
+ > PutSQL : FlowFile Content의 SQL을 데이터베이스에서 실행
+ > 
+ > PutDatabaseRecord : Record 데이터를 DB에 INSERT / UPDATE / UPSERT
+  ---
+  
+# 7. UpdateAttribute
   <details>
   <summary><strong>UpdateAttribute</strong> - FlowFile Attribute 생성 및 수정</summary>
   
@@ -261,7 +305,7 @@
  
   ---
 
-# 7. ListFile
+# 8. ListFile
   <details>
   <summary><strong>ListFile</strong> - 디렉터리의 파일 목록을 조회하여 FlowFile 생성</summary>
   
@@ -299,13 +343,13 @@
  
   ---
 
-# 8. FetchFile
+# 9. FetchFile
 <details>
 <summary><strong>FetchFile</strong> - 원격 저장소의 파일 가져오기</summary>
 
-  원격 저장소에 저장된 파일을 FlowFile로 가져오는 프로세서이다.
+    원격 저장소에 저장된 파일을 FlowFile로 가져오는 프로세서이다.
 
-  FTP, SFTP, HTTP 등의 원격 파일 시스템에서 특정 파일을 가져와 NiFi FlowFile로 생성하거나, 기존 FlowFile의 정보를 이용하여 원격 파일을 가져오는 작업에 사용할 수 있다.
+    FTP, SFTP, HTTP 등의 원격 파일 시스템에서 특정 파일을 가져와 NiFi FlowFile로 생성하거나, 기존 FlowFile의 정보를 이용하여 원격 파일을 가져오는 작업에 사용할 수 있다.
 
   ### 주요 Properties
 
