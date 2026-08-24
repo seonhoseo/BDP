@@ -298,3 +298,41 @@
   </details>
  
   ---
+
+# 8. FetchFile
+<details>
+<summary><strong>FetchFile</strong> - 원격 저장소의 파일 가져오기</summary>
+
+  원격 저장소에 저장된 파일을 FlowFile로 가져오는 프로세서이다.
+
+  FTP, SFTP, HTTP 등의 원격 파일 시스템에서 특정 파일을 가져와 NiFi FlowFile로 생성하거나, 기존 FlowFile의 정보를 이용하여 원격 파일을 가져오는 작업에 사용할 수 있다.
+
+  ### 주요 Properties
+
+  | Property | 설명 |
+  |---|---|
+  | **Remote URL** | 가져올 파일이 위치한 원격 서버의 URL을 지정한다. |
+  | **File to Fetch** | 원격 서버에서 가져올 파일의 경로 또는 파일명을 지정한다. |
+  | **Completion Strategy** | 파일을 가져온 후 원격 파일을 어떻게 처리할지 지정한다. |
+  | **SSL Context Service** | HTTPS 등 SSL/TLS 연결이 필요한 경우 사용할 SSL Context Service를 지정한다. |
+  | **Username** | 원격 서버 접속에 사용할 사용자 계정을 지정한다. |
+  | **Password** | 원격 서버 접속에 사용할 비밀번호를 지정한다. |
+
+  ### Remote URL
+
+  파일을 가져올 원격 서버의 주소를 지정한다.
+
+  예를 들어 SFTP 서버를 사용하는 경우 다음과 같이 설정할 수 있다.
+
+  ```text
+  sftp://192.168.0.100:22
+  ```
+
+  </details>
+  
+> [!TIP]
+> 해당 설명글에서 주요 Properties에서 설명되는 Property가 없는 경우엔 Required field 우측 '+'클릭하여 직접 생성했다는 의미이다.
+>
+> FetchFile 프로세서 우클릭 - Configure - Properties - '+' 클릭 - name : Remote URL 기재 후 'OK' - 설정값 대입
+
+  ---
