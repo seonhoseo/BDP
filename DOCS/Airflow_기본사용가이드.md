@@ -58,7 +58,7 @@ Dag 소스코드 내 NiFi에 대한 연결정보(PW)가 노출되지 않게끔 �
   
 ```text
 # ==============================================================================
-# DAG NAME    : RENTAL_ETL
+# DAG NAME    : RENTAL_ETL_v2
 # AUTHOR      : seoseonho
 # DESCRIPTION : Rental ETL Orchestration
 # ==============================================================================
@@ -158,23 +158,45 @@ import pendulum
 
 
 # ==============================================================================
-# 4. HTTP / REST API 호출을 위한 라이브러리
+# 4. HTTP / REST API 호출을 위한 Airflow Hook
 # ==============================================================================
 
-# requests
+# HttpHook
 # ------------------------------------------------------------------------------
-# Python에서 HTTP 요청을 보내기 위한 라이브러리입니다.
+# Airflow Connection에 등록된 HTTP 접속 정보를 이용하여
+# NiFi REST API를 호출할 수 있도록 해주는 Hook입니다.
 #
-# 이 DAG에서는 NiFi REST API를 호출하기 위해 사용합니다.
+# 이 DAG에서는 별도로 requests.post(), requests.get(), requests.put()를
+# 직접 사용하는 대신 Airflow의 HttpHook을 사용합니다.
 #
-# 예:
+# 따라서 NiFi 서버 주소와 인증정보를 DAG 코드에 직접 작성하지 않고
+# Airflow Connection ID를 통해 관리할 수 있습니다.
 #
-# GET  → NiFi 상태 조회
-# POST → NiFi Access Token 발급
-# PUT  → NiFi Process Group 실행 / 중지
+# 사용할 Connection ID:
+#
+#     nifi
+#
+# Airflow UI:
+#
+#     Admin
+#       → Connections
+#           → nifi
+#
 # ------------------------------------------------------------------------------
 
-import requests
+from airflow.providers.http.hooks.http import HttpHook
+
+
+# BaseHook
+# ------------------------------------------------------------------------------
+# Airflow Connection에 저장되어 있는 username / password를 가져오기 위해
+# 사용합니다.
+#
+# 비밀번호 자체는 DAG 코드에 작성하지 않고
+# Airflow Connection에서 관리합니다.
+# ------------------------------------------------------------------------------
+
+from airflow.sdk import BaseHook
 
 
 # urllib3
@@ -206,7 +228,8 @@ import time
 # InsecureRequestWarning을 화면에 표시하지 않도록 합니다.
 #
 # 주의:
-# verify=False 자체가 인증서 검증을 하지 않는 설정입니다.
+#
+# 아래의 NIFI_VERIFY_SSL = False 설정과 함께 사용됩니다.
 #
 # 운영환경에서는 가능하면 정상적인 인증서를 사용하고
 # verify=True 방식으로 인증서를 검증하는 것이 좋습니다.
@@ -216,41 +239,64 @@ urllib3.disable_warnings()
 
 
 # ==============================================================================
-# 6. NiFi 접속 정보
+# 6. NiFi Airflow Connection 설정
 # ==============================================================================
 
-# NiFi REST API가 실행되고 있는 주소입니다.
+# Airflow UI의 Connection에 등록된 NiFi Connection ID입니다.
 #
-# 예:
+# Airflow UI:
 #
-# https://NiFi_IP:8443
+#     Admin
+#       → Connections
+#           → nifi
 #
-# Airflow VM에서 이 주소로 접근할 수 있어야 합니다.
+# 에 NiFi 접속 정보를 등록해두었다고 가정합니다.
+#
+# Connection 예시:
+#
+#     Connection ID : nifi
+#     Connection Type : HTTP
+#     Host : https://dfodev.iptime.org
+#     Port : 8443
+#     Login : bdpadmin
+#     Password : NiFi 비밀번호
+#
+# 또는 Airflow Connection 설정 방식에 따라
+# Host에 전체 URL을 입력하는 방식도 사용할 수 있습니다.
+#
+# 중요한 점:
+#
+# DAG 코드에는 다음 정보를 직접 작성하지 않습니다.
+#
+#     NiFi IP
+#     NiFi Port
+#     NiFi Username
+#     NiFi Password
+#
+# Airflow가 Connection ID "nifi"를 이용하여
+# 해당 정보를 가져옵니다.
 # ==============================================================================
 
-NIFI_URL = "https://dfodev.iptime.org:8443"
+NIFI_CONN_ID = "nifi"
 
 
-# NiFi 로그인 계정입니다.
-# ------------------------------------------------------------------------------
-# 현재는 코드에서 직접 지정하는 방식입니다.
+# ==============================================================================
+# 6-1. NiFi HTTPS 인증서 검증 설정
+# ==============================================================================
+
+# 현재 개발 / 테스트 환경에서 Self-Signed 인증서를 사용하는 경우
+# False로 설정합니다.
 #
-# 향후에는 Airflow Connection에 저장하여
-# DAG 코드에 계정 / 비밀번호를 직접 노출하지 않는 방식을 권장합니다.
-# ------------------------------------------------------------------------------
-
-NIFI_USER = "bdpadmin"
-
-
-# NiFi 비밀번호
-# ------------------------------------------------------------------------------
-# 실제 비밀번호를 입력합니다.
+# False:
+#     HTTPS 인증서를 검증하지 않음
 #
-# 보안상 실제 비밀번호를 DAG 코드에 직접 작성하는 것은 권장하지 않습니다.
-# 가능하면 Airflow Connection 또는 Secret Backend를 사용하는 것이 좋습니다.
-# ------------------------------------------------------------------------------
+# True:
+#     HTTPS 인증서를 정상적으로 검증
+#
+# 운영환경에서는 정상적인 인증서를 구성한 후 True로 변경하는 것을 권장합니다.
+# ==============================================================================
 
-NIFI_PASSWORD = "<NIFI_PASSWORD>"
+NIFI_VERIFY_SSL = False
 
 
 # ==============================================================================
@@ -268,6 +314,7 @@ NIFI_PASSWORD = "<NIFI_PASSWORD>"
 #   → ODS 데이터를 이용하여 DW 영역을 생성
 #
 # NiFi Process Group은 각각 고유한 ID를 가지고 있습니다.
+#
 # 아래 Dictionary에 이름과 ID를 연결해두면
 # 코드에서 긴 UUID를 직접 반복해서 작성하지 않아도 됩니다.
 #
@@ -298,9 +345,9 @@ PG = {
 #
 # Airflow UI:
 #
-# Admin
-#   → Connections
-#       → postgres_rnd
+#     Admin
+#       → Connections
+#           → postgres_rnd
 #
 # 로 등록되어 있어야 합니다.
 #
@@ -317,24 +364,25 @@ POSTGRES_CONN_ID = "postgres_rnd"
 
 def get_nifi_token():
     """
-    NiFi REST API를 사용하기 위한 인증 Token을 발급받습니다.
+    Airflow Connection "nifi"에 저장된 NiFi 계정 정보를 이용하여
+    NiFi REST API Access Token을 발급받습니다.
 
     --------------------------------------------------------------------------
     왜 Token이 필요한가?
     --------------------------------------------------------------------------
 
-    NiFi는 REST API를 호출할 때 인증이 필요한 경우가 많습니다.
+    NiFi REST API를 호출하려면 인증이 필요한 경우가 많습니다.
 
     현재 구성에서는
 
-        NiFi 사용자명
-              +
-        NiFi 비밀번호
-              ↓
+        Airflow Connection
+                ↓
+        NiFi username / password
+                ↓
         /nifi-api/access/token
-              ↓
+                ↓
         JWT Token
-              ↓
+                ↓
         NiFi REST API 호출
 
     순서로 인증합니다.
@@ -343,9 +391,10 @@ def get_nifi_token():
     처리 순서
     --------------------------------------------------------------------------
 
-    1. NiFi username / password를 준비합니다.
+    1. Airflow Connection "nifi"에서 username / password를 가져옵니다.
 
-    2. NiFi의 /access/token API를 호출합니다.
+    2. HttpHook을 이용하여 NiFi의
+       /nifi-api/access/token API를 호출합니다.
 
     3. NiFi가 인증에 성공하면 Token을 반환합니다.
 
@@ -353,7 +402,7 @@ def get_nifi_token():
 
         Authorization: Bearer <Token>
 
-    형식으로 사용합니다.
+       형식으로 사용합니다.
 
     --------------------------------------------------------------------------
     반환값
@@ -364,43 +413,80 @@ def get_nifi_token():
     """
 
     # --------------------------------------------------------------------------
-    # NiFi의 Access Token 발급 API 호출
+    # Airflow Connection "nifi"에서 접속 정보 가져오기
     # --------------------------------------------------------------------------
 
-    response = requests.post(
+    conn = BaseHook.get_connection(NIFI_CONN_ID)
 
-        # NiFi REST API의 Token 발급 주소
-        f"{NIFI_URL}/nifi-api/access/token",
+    # Connection에 저장된 username / password를 가져옵니다.
+    #
+    # 여기에는 실제 값이 들어가지만
+    # DAG 코드에는 비밀번호가 직접 작성되어 있지 않습니다.
+    #
+    # Airflow Connection에서 관리되기 때문에
+    # DAG 소스 코드에서 비밀번호가 노출되지 않습니다.
+    nifi_user = conn.login
+    nifi_password = conn.password
 
-        # 요청 데이터의 형식
+    # --------------------------------------------------------------------------
+    # Airflow HTTP Connection "nifi"를 이용하여
+    # NiFi Access Token API 호출
+    # --------------------------------------------------------------------------
+
+    hook = HttpHook(
+        method="POST",
+        http_conn_id=NIFI_CONN_ID
+    )
+
+    response = hook.run(
+
+        # NiFi REST API의 Access Token 발급 주소
+        #
+        # 기본 URL은 Airflow Connection "nifi"에서 가져옵니다.
+        #
+        # 예:
+        #
+        # Connection
+        #     https://dfodev.iptime.org:8443
+        #
+        # +
+        #
+        # endpoint
+        #     nifi-api/access/token
+        #
+        # =
+        #
+        # https://dfodev.iptime.org:8443/nifi-api/access/token
+        endpoint="nifi-api/access/token",
+
+        # NiFi Access Token API는
+        # username / password를 form 데이터로 전달합니다.
+        data={
+            "username": nifi_user,
+            "password": nifi_password
+        },
+
+        # NiFi Token API가 요구하는 Content-Type
         headers={
             "Content-Type": "application/x-www-form-urlencoded"
         },
 
-        # NiFi 로그인 정보
-        data={
-            "username": NIFI_USER,
-            "password": NIFI_PASSWORD
-        },
-
-        # 현재 환경에서는 HTTPS 인증서 검증을 하지 않음
-        #
-        # 운영환경에서는 정상적인 인증서를 구성하고
-        # verify=True 사용을 권장합니다.
-        verify=False
+        # 현재 개발 / 테스트 환경에서는
+        # Self-Signed 인증서를 사용하므로 SSL 인증서 검증을 하지 않습니다.
+        extra_options={
+            "verify": NIFI_VERIFY_SSL
+        }
     )
 
-    # HTTP 응답이 실패한 경우 예외를 발생시킵니다.
+    # HttpHook.run()은 HTTP 요청이 실패한 경우 예외를 발생시킵니다.
     #
-    # 예:
-    # 401 → 인증 실패
-    # 403 → 권한 부족
-    # 500 → NiFi 서버 오류
-    # --------------------------------------------------------------------------
+    # 따라서 기존 requests 코드에서 사용하던
+    #
+    #     response.raise_for_status()
+    #
+    # 를 별도로 작성할 필요가 없습니다.
 
-    response.raise_for_status()
-
-    # NiFi가 반환한 Token을 문자열로 반환합니다.
+    # NiFi가 반환한 Access Token을 문자열로 반환합니다.
     return response.text
 
 
@@ -469,22 +555,31 @@ def change_pg_state(pg_id, state):
 
 
     # --------------------------------------------------------------------------
+    # NiFi Process Group 정보 조회용 HttpHook 생성
+    # --------------------------------------------------------------------------
+
+    hook = HttpHook(
+        method="GET",
+        http_conn_id=NIFI_CONN_ID
+    )
+
+
+    # --------------------------------------------------------------------------
     # REST API 요청 Header 생성
     # --------------------------------------------------------------------------
     #
     # Authorization:
+    #
     #     NiFi에게 "나는 인증된 사용자다"라고 알려주는 부분입니다.
     #
     # Bearer:
+    #
     #     뒤에 오는 문자열이 Access Token이라는 의미입니다.
     # --------------------------------------------------------------------------
 
     headers = {
-
         "Authorization": f"Bearer {token}",
-
         "Content-Type": "application/json"
-
     }
 
 
@@ -492,20 +587,26 @@ def change_pg_state(pg_id, state):
     # 10-1. Process Group 현재 정보 조회
     # ==========================================================================
 
-    response = requests.get(
+    response = hook.run(
 
         # Process Group 정보를 조회하는 NiFi REST API
-        f"{NIFI_URL}/nifi-api/process-groups/{pg_id}",
+        endpoint=f"nifi-api/process-groups/{pg_id}",
 
+        # Bearer Token 전달
         headers=headers,
 
-        verify=False
-
+        # 현재 개발환경에서는 Self-Signed 인증서 사용
+        extra_options={
+            "verify": NIFI_VERIFY_SSL
+        }
     )
 
 
-    # HTTP 오류가 발생했다면 즉시 예외 발생
-    response.raise_for_status()
+    # --------------------------------------------------------------------------
+    # HTTP 오류가 발생했다면 HttpHook이 예외를 발생시킵니다.
+    #
+    # 따라서 별도의 response.raise_for_status()는 필요하지 않습니다.
+    # --------------------------------------------------------------------------
 
 
     # --------------------------------------------------------------------------
@@ -533,7 +634,7 @@ def change_pg_state(pg_id, state):
         # 변경할 상태
         #
         # RUNNING → 실행
-        # STOPPED → 중지
+        # STOPPED  → 중지
         "state": state
 
     }
@@ -543,26 +644,36 @@ def change_pg_state(pg_id, state):
     # 10-3. 실제 Process Group 상태 변경 요청
     # ==========================================================================
 
-    response = requests.put(
+    # PUT 요청을 보내기 위해 새로운 HttpHook을 생성합니다.
 
-        # Process Group의 상태를 변경하는 API
-        f"{NIFI_URL}/nifi-api/flow/process-groups/{pg_id}",
-
-        headers=headers,
-
-        # 위에서 만든 payload를 JSON 형태로 전달
-        json=payload,
-
-        verify=False
-
+    put_hook = HttpHook(
+        method="PUT",
+        http_conn_id=NIFI_CONN_ID
     )
 
 
-    # API 요청 실패 시 예외 발생
-    response.raise_for_status()
+    response = put_hook.run(
+
+        # Process Group 상태를 변경하는 NiFi API
+        endpoint=f"nifi-api/flow/process-groups/{pg_id}",
+
+        # Bearer Token 전달
+        headers=headers,
+
+        # NiFi API가 요구하는 JSON payload
+        json=payload,
+
+        # 현재 개발환경에서는 Self-Signed 인증서 사용
+        extra_options={
+            "verify": NIFI_VERIFY_SSL
+        }
+    )
 
 
+    # --------------------------------------------------------------------------
     # Airflow Task 로그에서 상태 변경 결과를 확인할 수 있도록 출력
+    # --------------------------------------------------------------------------
+
     print(f"{state} : {pg_id}")
 
 
@@ -613,6 +724,7 @@ def wait_until_finished(pg_id):
     Process Group 작업이 종료된 것으로 판단합니다.
     """
 
+
     # --------------------------------------------------------------------------
     # NiFi API 인증 Token 발급
     # --------------------------------------------------------------------------
@@ -620,11 +732,22 @@ def wait_until_finished(pg_id):
     token = get_nifi_token()
 
 
+    # --------------------------------------------------------------------------
+    # GET 방식의 HttpHook 생성
+    # --------------------------------------------------------------------------
+
+    hook = HttpHook(
+        method="GET",
+        http_conn_id=NIFI_CONN_ID
+    )
+
+
+    # --------------------------------------------------------------------------
     # REST API 요청 Header
+    # --------------------------------------------------------------------------
+
     headers = {
-
         "Authorization": f"Bearer {token}"
-
     }
 
 
@@ -638,19 +761,17 @@ def wait_until_finished(pg_id):
         # Process Group 상태 조회 API 호출
         # ----------------------------------------------------------------------
 
-        response = requests.get(
+        response = hook.run(
 
-            f"{NIFI_URL}/nifi-api/flow/process-groups/{pg_id}/status",
+            endpoint=f"nifi-api/flow/process-groups/{pg_id}/status",
 
             headers=headers,
 
-            verify=False
+            extra_options={
+                "verify": NIFI_VERIFY_SSL
+            }
 
         )
-
-
-        # HTTP 오류 발생 시 예외
-        response.raise_for_status()
 
 
         # ----------------------------------------------------------------------
@@ -669,19 +790,15 @@ def wait_until_finished(pg_id):
         # ----------------------------------------------------------------------
 
         active_thread = (
-
             response.json()
-
             ["processGroupStatus"]
-
             ["aggregateSnapshot"]
-
             ["activeThreadCount"]
-
         )
 
 
         # 현재 Thread 개수를 Airflow 로그에 출력
+
         print(f"Active Thread : {active_thread}")
 
 
@@ -693,9 +810,11 @@ def wait_until_finished(pg_id):
 
             # 더 이상 실행 중인 작업이 없으므로
             # NiFi Process Group 작업이 완료되었다고 판단합니다.
+
             print("Process Group Finished")
 
             # while True 반복문 종료
+
             break
 
 
@@ -736,14 +855,13 @@ def truncate_ods():
         운영환경에서는 대상 테이블을 반드시 확인해야 합니다.
     """
 
+
     # --------------------------------------------------------------------------
     # Airflow Connection에 등록된 PostgreSQL 정보로 DB 연결
     # --------------------------------------------------------------------------
 
     hook = PostgresHook(
-
         postgres_conn_id=POSTGRES_CONN_ID
-
     )
 
 
@@ -752,18 +870,18 @@ def truncate_ods():
     # --------------------------------------------------------------------------
 
     hook.run(
-    """
-    TRUNCATE TABLE
-        ods_rental,
-        ods_customer,
-        ods_inventory,
-        ods_film,
-        ods_staff,
-        ods_store,
-        ods_address,
-        ods_city,
-        ods_country;
-    """
+        """
+        TRUNCATE TABLE
+            ods_rental,
+            ods_customer,
+            ods_inventory,
+            ods_film,
+            ods_staff,
+            ods_store,
+            ods_address,
+            ods_city,
+            ods_country;
+        """
     )
 
 
@@ -838,7 +956,11 @@ def set_dw_autovacuum():
     여기서는 DW 테이블에 대해 Autovacuum 관련 설정을 적용합니다.
     """
 
+
+    # --------------------------------------------------------------------------
     # PostgreSQL Connection 생성
+    # --------------------------------------------------------------------------
+
     hook = PostgresHook(
         postgres_conn_id=POSTGRES_CONN_ID
     )
@@ -876,9 +998,11 @@ def set_dw_autovacuum():
         """
 
         # 해당 테이블에 SQL 실행
+
         hook.run(sql)
 
         # Airflow 로그에 어떤 테이블을 처리했는지 출력
+
         print(f"Autovacuum set for: {table}")
 
 
@@ -913,7 +1037,7 @@ def wait_dw():
 
     wait_until_finished(
 
-        # DW Process Group ID 전달
+        # DW Process Group ID
         PG["DW"]
 
     )
@@ -925,7 +1049,7 @@ def wait_dw():
 
 def stop_dw():
     """
-    DW Process Group을 STOPPED 상태로 변경합니다.
+    NiFi DW Process Group을 STOPPED 상태로 변경합니다.
     """
 
     change_pg_state(
@@ -960,6 +1084,7 @@ def execute_mart():
     순서로 진행됩니다.
     """
 
+
     # --------------------------------------------------------------------------
     # PostgreSQL Connection 생성
     # --------------------------------------------------------------------------
@@ -969,7 +1094,10 @@ def execute_mart():
     )
 
 
+    # --------------------------------------------------------------------------
     # 현재 한국 시간 가져오기
+    # --------------------------------------------------------------------------
+
     today = pendulum.now("Asia/Seoul")
 
 
@@ -1004,10 +1132,12 @@ def execute_mart():
 
 
     # Stored Procedure 실행
+
     hook.run(sql)
 
 
     # Airflow 로그에 실행 결과 출력
+
     print(
         f"""
 
@@ -1043,7 +1173,7 @@ with DAG(
     # Airflow UI에 표시되는 DAG의 고유 이름
     # --------------------------------------------------------------------------
 
-    dag_id="RENTAL_ETL",
+    dag_id="RENTAL_ETL_v2",
 
 
     # --------------------------------------------------------------------------
@@ -1092,7 +1222,6 @@ with DAG(
     #
     # False:
     #     DAG를 처음 활성화했을 때 과거 실행분을 자동으로 만들지 않습니다.
-    #
     # --------------------------------------------------------------------------
 
     catchup=False,
@@ -1273,7 +1402,7 @@ with DAG(
     # mart
     #
     # 즉, 위쪽 Task가 성공해야 다음 Task가 실행됩니다.
-    # ==========================================================================
+    # ==============================================================================
 
     (
 
