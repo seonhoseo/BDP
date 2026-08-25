@@ -46,6 +46,8 @@ Dag 소스코드 내 NiFi에 대한 연결정보(PW)가 노출되지 않게끔 �
 # 3. NiFi 호출 Dag 등록
 관리 효율성 및 등록 용이 위하여 Visual studio code에서 진행.
 > Visual studio code > 터미널 접속 > ~/airflow 경로 선택 > dags 우클릭 > New File
+>
+> 각 프로세스 그룹(PG)에 대한 고유 ID는 해당 PG를 클릭 시 좌측 캔버스 Operation 팝업창에 나타납니다.
 
 > [!Tip]
 > 아래 Dag는 실제 동작 및 검증 완료된 소스코드로 구축된 환경에 맞게 수정하여 사용하면 됩니다.
