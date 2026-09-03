@@ -313,6 +313,16 @@
   <img width="1534" height="456" alt="image" src="https://github.com/user-attachments/assets/e405511b-1eaa-486b-aa33-a5bc9e07f621" />
   
   </details>
+---
+
+# 4. NiFi 프로세서 Relationship
+### 4-1. NiFi 프로세서 Configure 중 Relationship이란? 
+* Processor가 작업을 마친 후, FlowFile을 어떤 경로로 보낼지 결정하는 출구 역할이다.
+### 4-2. NiFi 프로세서 Configure 중 Relationship의 예시와 역할
+* PutdatabaseRecord 프로세서에서 모든 relationships의 결과를 terminate로 체크했다먄 이는 어떤 결과든 해당 FlowFile을 버리겠다는 의미이다.
+* retry는 재귀호출과 같은 의미이며, 보통 자기 자신에게 연결된다. 예를 들어 DB 서버 다운 시 retry가 체크되어 있다면 Job을 지속 재수행 하기 때문에 리소스를 많이 사용하게 되는데, 이를 해결하기 위해 보통 retry보다는 다른 프로세서를 사용하여 30초 대기 뒤 재시도하기 등으로 제어하는 방법을 사용한다.
+* 실제 운영환경에서는 지금처럼 Automatically Terminate/Retry Relationships 에서 terminate/retry옵션을 지정하지 않고 성공 시 logmessage 프로세서로 이동, 실패 시 putmail 프로세서로 연결하여 실패 메일 전송하기 등으로 사용하는 것이 일반적이다.
+---
 
 > [!TIP]
 > 해당 문서는 Nifi에서 가장 기본적으로 사용되는 기능과 프로세스를 설명하고 있습니다. 보다 자세한 주석이나 상세기능 설정 참고를 위해서는 로컬 PC에 Nifi를 설치하여 제공된 Json파일을 업로딩 하시기 바랍니다.
