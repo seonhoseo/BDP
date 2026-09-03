@@ -324,5 +324,10 @@
 * 실제 운영환경에서는 지금처럼 Automatically Terminate/Retry Relationships 에서 terminate/retry옵션을 지정하지 않고 성공 시 logmessage 프로세서로 이동, 실패 시 putmail 프로세서로 연결하여 실패 메일 전송하기 등으로 사용하는 것이 일반적이다.
 ---
 
+# 5. NiFi Queue
+### 5-1. Queue의 역할
+
+
+---
 > [!TIP]
 > 해당 문서는 Nifi에서 가장 기본적으로 사용되는 기능과 프로세스를 설명하고 있습니다. 보다 자세한 주석이나 상세기능 설정 참고를 위해서는 로컬 PC에 Nifi를 설치하여 제공된 Json파일을 업로딩 하시기 바랍니다.
