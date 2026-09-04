@@ -317,7 +317,7 @@
 
 # 4. NiFi 프로세서 Relationship
 ### 4-1. NiFi 프로세서 Configure 중 Relationship이란? 
-* Processor가 작업을 마친 후, FlowFile을 어떤 경로로 보낼지 결정하는 출구 역할이다.
+* 프로세서 작업을 마친 후, FlowFile을 어떤 경로로 보낼지 결정하는 출구 역할이다.
 ### 4-2. NiFi 프로세서 Configure 중 Relationship의 예시와 역할
 * PutdatabaseRecord 프로세서에서 모든 relationships의 결과를 terminate로 체크했다먄 이는 어떤 결과든 해당 FlowFile을 버리겠다는 의미이다.
 * retry는 재귀호출과 같은 의미이며, 보통 자기 자신에게 연결된다. 예를 들어 DB 서버 다운 시 retry가 체크되어 있다면 Job을 지속 재수행 하기 때문에 리소스를 많이 사용하게 되는데, 이를 해결하기 위해 보통 retry보다는 다른 프로세서를 사용하여 30초 대기 뒤 재시도하기 등으로 제어하는 방법을 사용한다.
@@ -326,7 +326,14 @@
 
 # 5. NiFi Queue
 ### 5-1. Queue의 역할
+* 프로세서와 프로세서 사이에서 FlowFile을 임시로 보관하는 대기 공간이다.
+* 앞쪽 프로세서와 뒤쪽 프로세서의 처리 속도 차이를 완충하는 버퍼 역할을 한다.
+* Queue에 FlowFile이 쌓이면 뒤쪽 프로세서의 처리 속도가 상대적으로 느린 상태일 수 있다.
+* Queue가 설정된 용량에 도달하면 Back Pressure가 발생하여 앞쪽 프로세서의 데이터 생성을 제한한다.
+* Queue의 FlowFile 개수와 데이터 크기를 확인하면 NiFi Flow의 병목 구간을 파악할 수 있다.
 
+### 5-2. Queue로 확인하는 실패 사례
+* QueryDatabaseTableRecord 혹은 ExecuteSQLRecord 와 같은 프로세서에서 의도적인 오데이터를 가져온다고 가정해보자. 정수형인 컬럼에 적재되어야 할 데이터를 VARCHAR 형식으로 변환하여 실행시킨 오데이터 100건, 정상데이터 100건, 하여 총 200건을 Queue에 쌓아놓고, PutDatabaseRecord 프로세서를 실행시키면 정상데이터 100건만 적재된다.
 
 ---
 > [!TIP]
